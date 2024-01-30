@@ -1,43 +1,91 @@
-import React, { useContext, useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
+import TaskForm from './TaskForm';
+import { useParams } from 'react-router-dom';
+import * as styles from './Style.js'; 
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { LoginContext } from './ContextProvider/Context';
+
 const Dashboard = () => {
-  const {loginData,setLoginData,setUser}=useContext(LoginContext);
-  
-  const navigate=useNavigate();
+  const [tasks, setTasks] = useState([]);
+  const [showTaskForm, setShowTaskForm] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
+  const { id } = useParams();
 
-const DashboardValid=async()=>{
-let token=localStorage.getItem("userDataToken");
-console.log(token);
-const response=await axios.get('http://localhost:8000/validUser',{
-    headers:{
-        Accept:'application/json',
-        authorization:token
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        if (id) {
+          const response = await fetch(`http://localhost:8000/user/tasks/${id}`);
+          if (response.ok) {
+            const data = await response.json();
+            setTasks(data.tasks);
+          } else {
+            console.error('Failed to fetch tasks');
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching tasks:', error);
+      }
+    };
+
+    fetchTasks();
+  }, [id]);
+
+  const handleTaskAdded = (newTasks) => {
+    setTasks(newTasks);
+    setShowTaskForm(false);
+    setEditingTask(null); 
+  };
+
+  const handleDelete = async (taskId) => {
+    try {
+      const response = await axios.delete(`http://localhost:8000/deleteTask/${id}/${taskId}`);
+      if (response.status === 200) {
+        setTasks(response.data);
+      } else {
+        console.error('Failed to delete task');
+      }
+    } catch (error) {
+      console.error('Error deleting task:', error);
     }
-});
-//console.log(response.data);
-if(response.data.status === 401 ||!response.data){
-     navigate("*")}
-else{
-  console.log("user verify");
-  setLoginData(response.data.validUserOne)
-  setUser(response.data.validUserOne.email[0].toUpperCase());
-  navigate('/dashboard')
-}
-}
+  };
 
-useEffect(()=>{
-DashboardValid();
-},[]);
+  const handleEdit = (taskId) => {
+    const taskToEdit = tasks.find((task) => task._id === taskId);
+    setEditingTask(taskToEdit);
+    setShowTaskForm(true);
+  };
 
   return (
-    <>
-    <div style={{display:"flex", flexDirection:"column", alignItems:"center",backgroundColor:"pink"}}>
-     <h1>User Email :{loginData?loginData.email:""}</h1>
-        </div>
-    </>
-  )
-}
+    <div style={styles.dashboardStyle}>
+      <button style={styles.addTaskButtonStyle} onClick={() => setShowTaskForm(true)}>
+        ➕
+      </button>
+      {showTaskForm && (
+        <TaskForm
+          onTaskAdded={handleTaskAdded}
+          userId={id}
+          editingTask={editingTask}
+        />
+      )}
+      <hr />
+      <h2 style={styles.pageTitleStyle}>Your Task List</h2>
+      <ul style={styles.taskListStyle}>
+        {tasks.map((task) => (
+          <li key={task._id} style={styles.taskListItemStyle}>
+            <span>{task.description}</span>
+            <div>
+              <button style={styles.editButtonStyle} onClick={() => handleEdit(task._id)}>
+                Edit
+              </button>
+              <button style={styles.deleteButtonStyle} onClick={() => handleDelete(task._id)}>
+                Delete
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
 
-export default Dashboard
+export default Dashboard;

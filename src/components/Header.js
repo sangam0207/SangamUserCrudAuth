@@ -50,7 +50,7 @@ const Header = () => {
     <>
       <header>
         <nav>
-          <h1>Hp Cloud</h1>
+          <h1>Sangam-Task-App</h1>
 
           <div className="avtar">
             <Avatar style={{ backgroundColor: "blue" }} onClick={handleClick}>

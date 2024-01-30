@@ -48,7 +48,7 @@ const Login = () => {
       if(status===201){
 
         localStorage.setItem("userDataToken",result.token);
-        navigate('/dashboard');
+        navigate(`/dashboard/${result._id}`);
         setInpval(LoginUserData);
        
       }

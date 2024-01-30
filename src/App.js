@@ -29,7 +29,7 @@ const App = () => {
       console.log("user verify");
       setLoginData(response.data.validUserOne)
       setUser(response.data.validUserOne.email[0].toUpperCase());
-      navigate('/dashboard')
+      navigate(`/dashboard/${response.data.validUserOne._id}`)
     }
     }
     useEffect(()=>{
@@ -56,7 +56,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard/:id" element={<Dashboard />} />
         <Route path="*" element={<Error/>}/>
       </Routes>
     </>
